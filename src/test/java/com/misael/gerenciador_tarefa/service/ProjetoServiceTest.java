@@ -128,42 +128,13 @@ class ProjetoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve listar projetos onde o usuário é membro")
-    void listarProjetos_retornaProjetosOndeUsuarioEhMembro() {
-        projetoService.criarProjeto(new CriarProjetoDTO("Projeto Compartilhado", "Desc", Set.of(membro.getId())), dono);
-
-        List<ProjetoDTO> resultado = projetoService.listarProjetos(membro);
-
-        assertEquals(1, resultado.size());
-        assertEquals("Projeto Compartilhado", resultado.get(0).nome());
+    @DisplayName("Deve lançar AcessoNegadoException ao tentar listar projetos com perfil MEMBRO")
+    void listarProjetos_lancaAcessoNegado_quandoUsuarioEhMembro() {
+        assertThrows(AcessoNegadoException.class, () -> projetoService.listarProjetos(membro));
     }
 
     @Test
-    @DisplayName("Deve buscar projeto por ID com sucesso quando o usuário é dono")
-    void buscarPorId_comSucesso_quandoDono() {
-        ProjetoDTO projetoCriado = projetoService.criarProjeto(new CriarProjetoDTO("Projeto Teste", "Desc", null), dono);
-
-        ProjetoDTO resultado = projetoService.buscarPorId(projetoCriado.id(), dono);
-
-        assertNotNull(resultado);
-        assertEquals(projetoCriado.id(), resultado.id());
-        assertEquals("Projeto Teste", resultado.nome());
-    }
-
-    @Test
-    @DisplayName("Deve buscar projeto por ID com sucesso quando o usuário é membro")
-    void buscarPorId_comSucesso_quandoMembro() {
-        ProjetoDTO projetoCriado = projetoService.criarProjeto(
-                new CriarProjetoDTO("Projeto Teste", "Desc", Set.of(membro.getId())), dono);
-
-        ProjetoDTO resultado = projetoService.buscarPorId(projetoCriado.id(), membro);
-
-        assertNotNull(resultado);
-        assertEquals(projetoCriado.id(), resultado.id());
-    }
-
-    @Test
-    @DisplayName("Deve buscar projeto por ID com sucesso quando o usuário é ADMIN mesmo não sendo membro")
+    @DisplayName("Deve buscar projeto por ID com sucesso quando o usuário é ADMIN")
     void buscarPorId_comSucesso_quandoAdmin() {
         ProjetoDTO projetoCriado = projetoService.criarProjeto(new CriarProjetoDTO("Projeto Teste", "Desc", null), dono);
 
@@ -174,19 +145,19 @@ class ProjetoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar AcessoNegadoException ao tentar buscar projeto por ID com perfil MEMBRO")
+    void buscarPorId_lancaAcessoNegado_quandoMembro() {
+        ProjetoDTO projetoCriado = projetoService.criarProjeto(
+                new CriarProjetoDTO("Projeto Teste", "Desc", Set.of(membro.getId())), dono);
+
+        assertThrows(AcessoNegadoException.class, () -> projetoService.buscarPorId(projetoCriado.id(), membro));
+    }
+
+    @Test
     @DisplayName("Deve lançar RecursoNaoEncontradoException quando ID do projeto não existir")
     void buscarPorId_lancaExcecao_quandoProjetoNaoEncontrado() {
         assertThrows(RecursoNaoEncontradoException.class,
                 () -> projetoService.buscarPorId(999L, dono));
-    }
-
-    @Test
-    @DisplayName("Deve lançar AcessoNegadoException quando usuário não for dono nem membro")
-    void buscarPorId_lancaAcessoNegado_quandoNaoPertenceAoProjeto() {
-        ProjetoDTO projetoCriado = projetoService.criarProjeto(new CriarProjetoDTO("Projeto Teste", "Desc", null), dono);
-
-        assertThrows(AcessoNegadoException.class,
-                () -> projetoService.buscarPorId(projetoCriado.id(), estranho));
     }
 
     @Test

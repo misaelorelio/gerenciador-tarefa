@@ -52,6 +52,7 @@ public class ProjetoService {
 
     @Transactional(readOnly = true)
     public List<ProjetoDTO> listarProjetos(Usuario usuarioLogado) {
+        validarPermissaoAdmin(usuarioLogado);
         List<Projeto> projetos = projetoRepository.findProjetosByUsuario(usuarioLogado);
         return projetos.stream()
                 .map(ProjetoDTO::fromEntity)
@@ -60,14 +61,15 @@ public class ProjetoService {
 
     @Transactional(readOnly = true)
     public ProjetoDTO buscarPorId(Long id, Usuario usuarioLogado) {
+        validarPermissaoAdmin(usuarioLogado);
         Projeto projeto = buscarEntidadeProjetoPorId(id, usuarioLogado);
         return ProjetoDTO.fromEntity(projeto);
     }
 
     @Transactional
     public ProjetoDTO atualizarProjeto(Long id, AtualizarProjetoDTO dto, Usuario usuarioLogado) {
+        validarPermissaoAdmin(usuarioLogado);
         Projeto projeto = buscarEntidadeProjetoPorId(id, usuarioLogado);
-        validarPermissaoDonoOuAdmin(projeto, usuarioLogado, "Apenas o dono do projeto pode editá-lo");
 
         projeto.setNome(dto.nome());
         projeto.setDescricao(dto.descricao());
@@ -78,8 +80,8 @@ public class ProjetoService {
 
     @Transactional
     public ProjetoDTO adicionarMembros(Long id, GerenciarMembrosDTO dto, Usuario usuarioLogado) {
+        validarPermissaoAdmin(usuarioLogado);
         Projeto projeto = buscarEntidadeProjetoPorId(id, usuarioLogado);
-        validarPermissaoDonoOuAdmin(projeto, usuarioLogado, "Apenas o dono do projeto pode gerenciar membros");
 
         List<Usuario> novosMembros = usuarioRepository.findAllById(dto.membrosIds());
         novosMembros.forEach(projeto::adicionarMembro);
@@ -90,8 +92,8 @@ public class ProjetoService {
 
     @Transactional
     public ProjetoDTO removerMembro(Long id, Long usuarioId, Usuario usuarioLogado) {
+        validarPermissaoAdmin(usuarioLogado);
         Projeto projeto = buscarEntidadeProjetoPorId(id, usuarioLogado);
-        validarPermissaoDonoOuAdmin(projeto, usuarioLogado, "Apenas o dono do projeto pode gerenciar membros");
 
         if (projeto.getDono().getId().equals(usuarioId)) {
             throw new RegraDeNegocioException("Não é permitido remover o dono do projeto da lista de membros");
@@ -105,8 +107,8 @@ public class ProjetoService {
 
     @Transactional
     public void deletarProjeto(Long id, Usuario usuarioLogado) {
+        validarPermissaoAdmin(usuarioLogado);
         Projeto projeto = buscarEntidadeProjetoPorId(id, usuarioLogado);
-        validarPermissaoDonoOuAdmin(projeto, usuarioLogado, "Apenas o dono do projeto pode excluí-lo");
 
         projetoRepository.delete(projeto);
     }
@@ -124,9 +126,9 @@ public class ProjetoService {
         return projeto;
     }
 
-    private void validarPermissaoDonoOuAdmin(Projeto projeto, Usuario usuarioLogado, String mensagemErro) {
+    private void validarPermissaoAdmin(Usuario usuarioLogado) {
         if (usuarioLogado.getPerfil() != PerfilUsuario.ADMIN) {
-            throw new AcessoNegadoException("Apenas administradores podem gerenciar projetos e membros");
+            throw new AcessoNegadoException("Apenas administradores podem acessar e gerenciar projetos");
         }
     }
 }
