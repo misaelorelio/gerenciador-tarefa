@@ -9,10 +9,10 @@ import com.misael.gerenciador_tarefa.domain.model.Usuario;
 import com.misael.gerenciador_tarefa.domain.repository.ProjetoRepository;
 import com.misael.gerenciador_tarefa.domain.repository.TarefaRepository;
 import com.misael.gerenciador_tarefa.domain.repository.UsuarioRepository;
-import com.misael.gerenciador_tarefa.domain.repository.projection.PrioridadeCountProjection;
-import com.misael.gerenciador_tarefa.domain.repository.projection.StatusCountProjection;
 import com.misael.gerenciador_tarefa.domain.repository.specification.TarefaSpecification;
+import com.misael.gerenciador_tarefa.dto.relatorio.PrioridadeCountDTO;
 import com.misael.gerenciador_tarefa.dto.relatorio.RelatorioProjetoDTO;
+import com.misael.gerenciador_tarefa.dto.relatorio.StatusCountDTO;
 import com.misael.gerenciador_tarefa.dto.tarefa.AtualizarStatusTarefaDTO;
 import com.misael.gerenciador_tarefa.dto.tarefa.AtualizarTarefaDTO;
 import com.misael.gerenciador_tarefa.dto.tarefa.CriarTarefaDTO;
@@ -148,17 +148,17 @@ public class TarefaService {
     public RelatorioProjetoDTO gerarRelatorioResumo(Long projetoId, Usuario usuarioLogado) {
         Projeto projeto = buscarValidarProjeto(projetoId, usuarioLogado);
 
-        List<StatusCountProjection> statusCounts = tarefaRepository.countTarefasPorStatus(projetoId);
-        List<PrioridadeCountProjection> prioridadeCounts = tarefaRepository.countTarefasPorPrioridade(projetoId);
+        List<StatusCountDTO> statusCounts = tarefaRepository.countTarefasPorStatus(projetoId);
+        List<PrioridadeCountDTO> prioridadeCounts = tarefaRepository.countTarefasPorPrioridade(projetoId);
         long totalTarefas = tarefaRepository.countByProjetoId(projetoId);
 
         Map<StatusTarefa, Long> porStatus = new EnumMap<>(StatusTarefa.class);
         for (StatusTarefa st : StatusTarefa.values()) {
             porStatus.put(st, 0L);
         }
-        for (StatusCountProjection sc : statusCounts) {
-            if (sc.getStatus() != null) {
-                porStatus.put(sc.getStatus(), sc.getTotal());
+        for (StatusCountDTO sc : statusCounts) {
+            if (sc.status() != null) {
+                porStatus.put(sc.status(), sc.total());
             }
         }
 
@@ -166,9 +166,9 @@ public class TarefaService {
         for (PrioridadeTarefa pt : PrioridadeTarefa.values()) {
             porPrioridade.put(pt, 0L);
         }
-        for (PrioridadeCountProjection pc : prioridadeCounts) {
-            if (pc.getPrioridade() != null) {
-                porPrioridade.put(pc.getPrioridade(), pc.getTotal());
+        for (PrioridadeCountDTO pc : prioridadeCounts) {
+            if (pc.prioridade() != null) {
+                porPrioridade.put(pc.prioridade(), pc.total());
             }
         }
 
